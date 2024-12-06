@@ -1,0 +1,23 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH(원격 접속)로 EC2에 접속
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER_NAME  }}
+          key: ${{secrets.EC2_KEY}}
+          script: |
+            cd /home/ubuntu/WebSocketChat
+            git pull origin main
+            ./gradlew clean build
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -jar build/libs/*SNAPASHOT.jar > ./output.log 2>&1 &
